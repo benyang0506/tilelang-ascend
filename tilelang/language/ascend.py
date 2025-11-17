@@ -1,6 +1,7 @@
 import tilelang.language as T
 from tvm.tir import PrimExpr, Buffer, BufferRegion, BufferLoad, Var
 from typing import List, Union, Literal
+import numpy as np
 
 import math
 
@@ -586,3 +587,17 @@ def compare(dst: Buffer, src0: Buffer, src1: Union[Buffer, BufferLoad, PrimExpr]
 
 def sync_all():
     return T.call_extern("handle", f"AscendC::SyncAll<false>")
+
+def cast_tl(dst: Buffer, src: Buffer, mode: str, count: PrimExpr):
+    assert mode in ["CAST_NONE", "CAST_RINT", "CAST_FLOOR", "CAST_CEIL", "CAST_ROUND", "CAST_TRUNC", "CAST_ODD"]
+
+    round_mode = f"AscendC::RoundMode::{mode}"
+
+    # int32 cast half，roundMode not work，should SetDeqScale(half scale)
+    # if (src.dtype == "int32" and dst.dtype == "float16"):
+    #     T.call_extern("handle", f"AscendC::SetDeqScale", scale)
+    
+    return T.call_extern("handle", f"AscendC::Cast", dst.access_ptr("w"), src.access_ptr("r"), round_mode, count)
+
+def set_deq_scale(scale: PrimExpr):
+    return T.call_extern("handle", f"AscendC::SetDeqScale", scale)
