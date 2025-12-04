@@ -76,6 +76,8 @@ def OptimizeForTarget(mod: IRModule, target: Target) -> IRModule:
     pass_ctx = tilelang.transform.get_pass_context()
     mod = tir.transform.PlanAndUpdateBufferAllocationLocation()(mod)
     mod = tilelang.transform.CombineCV()(mod)
+    mod = tilelang.transform.PipelinePlanning()(mod)
+    mod = tilelang.transform.InjectSoftwarePipeline()(mod)
     mod = tir.transform.LowerOpaqueBlock()(mod)
     mod = tir.transform.NarrowDataType(32)(mod)
     mod = tilelang.transform.ConfigIndexBitwidth()(mod)
