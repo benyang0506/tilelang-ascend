@@ -109,38 +109,38 @@ def flash_attention_fwd(
                 T.copy(acc_o_l0c, workspace_3[cid, :, :])
 
             # with T.Scope("V"):
-            T.fill(acc_o, 0.0)
-            T.fill(sumexp, 0.0)
-            T.fill(m_i, -2**30)
+            T.tile.fill(acc_o, 0.0)
+            T.tile.fill(sumexp, 0.0)
+            T.tile.fill(m_i, -2**30)
             for _k in T.serial(T.ceildiv(seq_len, block_N)):
-                T.fill(acc_s_ub, 0.0)
+                T.tile.fill(acc_s_ub, 0.0)
                 T.copy(m_i, m_i_prev)
                 T.copy(workspace_1[cid, vid * block_M // 2:vid * block_M // 2 + block_M // 2, :], acc_s_ub_)
-                T.add(acc_s_ub, acc_s_ub, acc_s_ub_)
-                T.mul(acc_s_ub, acc_s_ub, sm_scale)
-                T.reduce_max(m_i, acc_s_ub, tmp_ub, dim=-1)
-                T.max(m_i, m_i, m_i_prev)
-                T.sub(m_i_prev, m_i_prev, m_i)
-                T.exp(m_i_prev, m_i_prev)
+                T.tile.add(acc_s_ub, acc_s_ub, acc_s_ub_)
+                T.tile.mul(acc_s_ub, acc_s_ub, sm_scale)
+                T.tile.reduce_max(m_i, acc_s_ub, tmp_ub, dim=-1)
+                T.tile.max(m_i, m_i, m_i_prev)
+                T.tile.sub(m_i_prev, m_i_prev, m_i)
+                T.tile.exp(m_i_prev, m_i_prev)
 
                 for h_i in range(block_M // 2):
-                    T.sub(acc_s_ub[h_i, :], acc_s_ub[h_i, :], m_i[h_i])  # -
+                    T.tile.sub(acc_s_ub[h_i, :], acc_s_ub[h_i, :], m_i[h_i])  # -
 
-                T.exp(acc_s_ub, acc_s_ub)
-                T.reduce_sum(sumexp_i_ub, acc_s_ub, tmp_ub, dim=-1)
-                T.mul(sumexp, sumexp, m_i_prev)  # check
-                T.add(sumexp, sumexp, sumexp_i_ub)
+                T.tile.exp(acc_s_ub, acc_s_ub)
+                T.tile.reduce_sum(sumexp_i_ub, acc_s_ub, tmp_ub, dim=-1)
+                T.tile.mul(sumexp, sumexp, m_i_prev)  # check
+                T.tile.add(sumexp, sumexp, sumexp_i_ub)
 
                 for h_i in range(block_M // 2):
-                    T.mul(acc_o[h_i, :], acc_o[h_i, :], m_i_prev[h_i])
+                    T.tile.mul(acc_o[h_i, :], acc_o[h_i, :], m_i_prev[h_i])
 
                 T.copy(acc_s_ub, acc_s_half)
                 T.copy(acc_s_half, workspace_2[cid, vid * block_M // 2:vid * block_M // 2 + block_M // 2, :])
                 T.copy(workspace_3[cid, vid * block_M // 2:vid * block_M // 2 + block_M // 2, :], acc_o_ub)
-                T.add(acc_o, acc_o, acc_o_ub)
+                T.tile.add(acc_o, acc_o, acc_o_ub)
 
             for h_i in range(block_M // 2):
-                T.div(acc_o[h_i, :], acc_o[h_i, :], sumexp[h_i])
+                T.tile.div(acc_o[h_i, :], acc_o[h_i, :], sumexp[h_i])
 
             T.copy(acc_o, acc_o_half)
             T.copy(acc_o_half, Output[bz, by, bx * block_M + vid * block_M // 2:bx * block_M + vid * block_M // 2 + block_M // 2, :])
