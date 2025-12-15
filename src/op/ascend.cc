@@ -115,6 +115,8 @@ Stmt AscendCopy::Lower(const LowerArgs &T, arith::Analyzer *analyzer) const {
     bool print_src_layout = false;
     bool print_dst_layout = false;
     bool print_ub = false;
+    bool gm2ub = false;
+    bool ub2gm = false;
   } config;
 
   std::stringstream ss;
@@ -140,6 +142,7 @@ Stmt AscendCopy::Lower(const LowerArgs &T, arith::Analyzer *analyzer) const {
     config.print_ub = true;
 
     if (src.scope() == "global") {
+      config.gm2ub = true;
       strideN = compute_strideN(src, src_extents);
       config.needs_strideN = true;
 
@@ -151,6 +154,7 @@ Stmt AscendCopy::Lower(const LowerArgs &T, arith::Analyzer *analyzer) const {
       }
       ss << ">";
     } else if (dst.scope() == "global") {
+      config.ub2gm = true;
       strideN = compute_strideN(dst, dst_extents);
       config.needs_strideN = true;
 
@@ -251,6 +255,20 @@ Stmt AscendCopy::Lower(const LowerArgs &T, arith::Analyzer *analyzer) const {
     new_args.push_back(compute_strideN(src, src_extents));
     new_args.push_back(dst->shape[dst->shape.size() - 2]);
     new_args.push_back(dst->shape[dst->shape.size() - 1]);
+  }
+
+  if (config.gm2ub) {
+    if (dst->shape.size() > 1) {
+      new_args.push_back(dst->shape[dst->shape.size() - 2]);
+    }
+    new_args.push_back(dst->shape[dst->shape.size() - 1]);
+  }
+
+  if (config.ub2gm) {
+    if (src->shape.size() > 1) {
+      new_args.push_back(src->shape[src->shape.size() - 2]);
+    }
+    new_args.push_back(src->shape[src->shape.size() - 1]);
   }
 
   if (config.l12l0) {
