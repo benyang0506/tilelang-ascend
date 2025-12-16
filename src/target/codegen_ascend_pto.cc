@@ -475,14 +475,19 @@ void CodeGenTileLangAscendPto::VisitExpr_(const CallNode *op, std::ostream &os) 
           std::string shape_template = "Shape<", stride_template = "Stride<";
           size_t len = global_tensor_template[String(tensor_addr)].shape_list.size();
           size_t op_arg_len = op->args.size();
+          size_t shape_size = 5;
           // Dynamic Shape and Static Shape
 
           // generate shape
-          for (size_t i = 0; i < 5; i++) {
-            // if op->args.size() changes with GM shapes, add one more len.
-            if (4 - i < op_arg_len - 4) shape_template += PrintExpr(op->args[i + len - 1]);
-            else shape_template += "1";
-            if (i < 4) shape_template += ", ";
+          for (size_t i = 0; i < shape_size; i++) {
+              if (i < shape_size - len) {
+                  shape_template += "1";
+              } else {
+                  shape_template += PrintExpr(op->args[op_arg_len - shape_size + i]);
+              }
+              if (i < shape_size - 1) {
+                  shape_template += ", ";
+              }
           }
           shape_template += ">";
           // generate stride
@@ -528,11 +533,17 @@ void CodeGenTileLangAscendPto::VisitExpr_(const CallNode *op, std::ostream &os) 
           std::string shape_template = "Shape<", stride_template = "Stride<";
           size_t len = global_tensor_template[String(tensor_addr)].shape_list.size();
           size_t op_arg_len = op->args.size();
+          size_t shape_size = 5;
           // generate shape
-          for (size_t i = 0; i < 5; i++) {
-            if (4 - i < op_arg_len - 4) shape_template += PrintExpr(op->args[i + len - 1]);
-            else shape_template += "1";
-            if (i < 4) shape_template += ", ";
+          for (size_t i = 0; i < shape_size; i++) {
+              if (i < shape_size - len) {
+                  shape_template += "1";
+              } else {
+                  shape_template += PrintExpr(op->args[op_arg_len - shape_size + i]);
+              }
+              if (i < shape_size - 1) {
+                  shape_template += ", ";
+              }
           }
           shape_template += ">";
           // generate stride
@@ -722,16 +733,16 @@ void CodeGenTileLangAscendPto::VisitStmt_(const AttrStmtNode *op) {
     this->VisitStmt(op->body);
     return;
   } else if (op->attr_key == "resource_scope") { // other core
-    // auto resource_id = Downcast<IntImm>(op->value)->value;
-    // auto resource_name = resource_id == 0 ? "AIC" : "AIV";
+    auto resource_id = Downcast<IntImm>(op->value)->value;
+    auto resource_name = resource_id == 0 ? "CUBE" : "VEC";
 
-    // this->PrintIndent();
-    // stream << "if ASCEND_IS_" << resource_name << " {\n";
+    this->PrintIndent();
+    stream << "#if defined(__DAV_C220_" << resource_name << "__)\n";
     int func_scope = this->BeginScope();
     this->VisitStmt(op->body);
     this->EndScope(func_scope);
-    // this->PrintIndent();
-    // stream << "}\n";
+    this->PrintIndent();
+    stream << "#endif\n";
     return;
   }
   CodeGenC::VisitStmt_(op);
@@ -749,8 +760,18 @@ void CodeGenTileLangAscendPto::VisitStmt_(const AllocateNode *op) {
     this->PrintIndent();
     // Allocate buffer
     if (address_map_.find(op->buffer_var) != address_map_.end()) {
-      stream << pos << "<" << type << ", " << op->extents[0] 
-      << ", " << op->extents[1] << "> " << vid << ";\n";
+      stream << pos << "<" << type;
+      for (size_t i = 0; i < op->extents.size(); i++) {
+          stream << ", " << op->extents[i];
+      }
+      stream << "> " << vid << "(";
+      for (size_t i = 0; i < op->extents.size(); i++) {
+          if (i < op->extents.size() - 1) {
+              stream << op->extents[i] << ", ";
+          } else {
+              stream << op->extents[i] << ");\n";
+          }
+      }
       // Allocate Start Address
       this->PrintIndent();
       stream << "TASSIGN(" << vid << ", " << DEC_STR_TO_HEX_STR(PrintExpr(address_map_[op->buffer_var])) << ");\n";
@@ -759,8 +780,18 @@ void CodeGenTileLangAscendPto::VisitStmt_(const AllocateNode *op) {
       if (address_offset_.find(String(pos)) == address_offset_.end()) {
         address_offset_.Set(String(pos), 0);
       }
-      stream << pos << "<" << type << ", " << op->extents[0] 
-      << ", " << op->extents[1] << "> " << vid << ";\n";
+      stream << pos << "<" << type;
+      for (size_t i = 0; i < op->extents.size(); i++) {
+          stream << ", " << op->extents[i];
+      }
+      stream << "> " << vid << "(";
+      for (size_t i = 0; i < op->extents.size(); i++) {
+          if (i < op->extents.size() - 1) {
+              stream << op->extents[i] << ", ";
+          } else {
+              stream << op->extents[i] << ");\n";
+          }
+      }
       this->PrintIndent();
       stream << "TASSIGN(" << vid << ", " << DEC_STR_TO_HEX_STR(PrintExpr(address_offset_[String(pos)])) << ");\n";
       address_offset_.Set(
