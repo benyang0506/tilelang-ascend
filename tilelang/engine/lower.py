@@ -226,4 +226,7 @@ def lower(
 
     codegen_mod = device_codegen(mod, target)
 
+    func = mod.functions_items()[0][1]
+    params = extrac_params(func)
+
     return CompiledArtifact(None, None, params, codegen_mod.get_source())
