@@ -83,6 +83,7 @@ class LibraryGenerator(object):
                 "-cce-aicore-dcci-insert-for-scalar=false",
                 "-DL2_CACHE_HINT",
                 "-I../../src/",
+                f"-I{ASCEND_HOME_PATH}/include/experiment/runtime",
                 f"-I{ASCEND_HOME_PATH}/include",
                 f"-I/usr/local/Ascend/driver/kernel/inc",
                 f"-I{TL_ROOT}/3rdparty/pto-tile-lib/include",
