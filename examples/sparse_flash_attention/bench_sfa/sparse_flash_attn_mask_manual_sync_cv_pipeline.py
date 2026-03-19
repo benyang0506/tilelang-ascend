@@ -125,7 +125,6 @@ def sparse_attention_fwd(
             # vec1
             score_max = T.alloc_ub([m_base_size_v, 1], accum_dtype)
             score_max_pre = T.alloc_ub([m_base_size_v, 1], accum_dtype)
-            score_scale = T.alloc_ub([m_base_size_v, 1], accum_dtype)
             acc_s_ub = T.alloc_ub([m_base_size_v, n_base_size], accum_dtype)
             score_max_broadcast = T.alloc_ub([m_base_size_v, n_base_size], accum_dtype)
             score_scale_broadcast = T.alloc_ub([m_base_size_v, dim], accum_dtype)
@@ -187,13 +186,12 @@ def sparse_attention_fwd(
                 score_max_pre: 73760 + n_base_size * 4 * 2,
                 log_sum: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4,
                 score_max: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 2,
-                score_scale: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 3,
                 # 以上的localTensor常驻UB
 
-                acc_s_ub: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 4,
-                score_max_broadcast: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 4 + m_base_size_v * n_base_size * 4,
-                score_sum: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 4 + m_base_size_v * n_base_size * 4 * 2,
-                acc_s_half: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 5 + m_base_size_v * n_base_size * 4 * 2,
+                acc_s_ub: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 3,
+                score_max_broadcast: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 3 + m_base_size_v * n_base_size * 4,
+                score_sum: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 3 + m_base_size_v * n_base_size * 4 * 2,
+                acc_s_half: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 4 + m_base_size_v * n_base_size * 4 * 2,
 
                 # vec2
                 acc_o_ub_temp: 73760 + n_base_size * 4 * 2 + m_base_size_v * 4 * 4,
