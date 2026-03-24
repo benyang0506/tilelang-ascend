@@ -42,7 +42,7 @@ act_kv_s 固定为 2560，sparse_size 固定为 2048，实际参与计算的有�
 |[sparse_flash_attn_pa_baseline.py](./sparse_flash_attn_pa_baseline.py)             | √ | 64  | × | × | × | 602us |
 |[sparse_flash_attn_pa_developer.py](./sparse_flash_attn_pa_developer.py)           | √ | 64  | × | × | √ | 347us |
 |[sparse_flash_attn_pa.py](./sparse_flash_attn_pa.py)                               | √ | 64  | √ | √ | √ | 127us |
-|[sparse_flash_attn_pa_no_cv_pipeline.py](./sparse_flash_attn_pa_no_cv_pipeline.py) | √ | 256 | √ | √ | × | 109us |
+|[sparse_flash_attn_pa_no_cv_pipeline.py](./sparse_flash_attn_pa_no_cv_pipeline.py) | √ | 256 | √ | × | √ | 109us |
 
 ## 📄使用方法
 
