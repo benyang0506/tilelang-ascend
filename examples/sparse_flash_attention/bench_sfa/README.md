@@ -48,5 +48,6 @@ act_kv_s 固定为 2560，sparse_size 固定为 2048，实际参与计算的有�
 
 直接运行bench_sfa.py即可。
 ```Python
-python bench_sfa.py
+python bench_sfa.py --file="sparse_flash_attn_pa_baseline"
 ```
+* --file：支持sparse_flash_attn_pa_baseline、sparse_flash_attn_pa_developer、sparse_flash_attn_pa和sparse_flash_attn_pa_no_cv_pipeline。
